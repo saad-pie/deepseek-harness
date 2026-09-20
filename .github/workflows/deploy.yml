@@ -39,12 +39,15 @@ jobs:
       - name: Install Dependencies
         run: pnpm install --no-frozen-lockfile
 
-      - name: Build All Workspace Packages
+      - name: Build Workspace Packages & Web App
         env:
           GITHUB_PAGES: "true"
         run: |
-          # Build all packages across the workspace so dist/lib entries are generated
-          pnpm -r build --if-present
+          # 1. Build required package dependencies first
+          pnpm --filter "./packages/**" build --if-present --
+
+          # 2. Build the frontend web application
+          pnpm --filter @deepseek-ai/dsh-web-frontend build
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
