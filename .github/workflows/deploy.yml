@@ -31,31 +31,16 @@ jobs:
         with:
           node-version: 22
 
-      - name: Install Pnpm (if used)
+      - name: Setup Pnpm
         uses: pnpm/action-setup@v3
         with:
           version: 9
-        continue-on-error: true
 
       - name: Install Dependencies
-        run: |
-          if [ -f pnpm-lock.yaml ]; then
-            pnpm install
-          elif [ -f package-lock.json ]; then
-            npm ci
-          elif [ -f yarn.lock ]; then
-            yarn install --frozen-lockfile
-          else
-            npm install
-          fi
+        run: pnpm install --no-frozen-lockfile
 
-      - name: Build Project
-        run: |
-          if [ -f pnpm-lock.yaml ]; then
-            pnpm run build || pnpm build
-          else
-            npm run build
-          fi
+      - name: Build Web App
+        run: pnpm --filter @deepseek-harness/web build || pnpm --filter ./apps/web build || pnpm run build
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
@@ -63,8 +48,8 @@ jobs:
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          # Automatically detects output folder (dist, build, out, or root)
-          path: ${{ steps.detect-dist.outputs.dir || './dist' }}
+          # Target the web app build output directory inside the monorepo
+          path: './apps/web/dist'
 
       - name: Deploy to GitHub Pages
         id: deployment
