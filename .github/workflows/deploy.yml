@@ -39,13 +39,12 @@ jobs:
       - name: Install Dependencies
         run: pnpm install --no-frozen-lockfile
 
-      - name: Build All Monorepo Workspace Dependencies
-        run: pnpm recursive run build --filter "!@deepseek-ai/dsh-web-frontend" || pnpm -r build || true
-
-      - name: Build Web Frontend
+      # Build workspace dependencies before building the web app
+      - name: Build Workspace Dependencies & Web App
+        env:
+          GITHUB_PAGES: "true"
         run: |
-          cd apps/web
-          pnpm run build || pnpm exec vite build
+          pnpm --filter "...@deepseek-ai/dsh-web-frontend" build
 
       - name: Setup Pages
         uses: actions/configure-pages@v5
