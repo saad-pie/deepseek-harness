@@ -42,14 +42,34 @@ jobs:
       - name: Build Web App
         run: pnpm --filter @deepseek-harness/web build || pnpm --filter ./apps/web build || pnpm run build
 
+      - name: Locate Build Output Directory
+        id: locate-dist
+        run: |
+          if [ -d "./apps/web/dist" ]; then
+            echo "path=./apps/web/dist" >> $GITHUB_OUTPUT
+          elif [ -d "./apps/web/build" ]; then
+            echo "path=./apps/web/build" >> $GITHUB_OUTPUT
+          elif [ -d "./apps/web/out" ]; then
+            echo "path=./apps/web/out" >> $GITHUB_OUTPUT
+          elif [ -d "./apps/web/.next" ]; then
+            echo "path=./apps/web/.next" >> $GITHUB_OUTPUT
+          elif [ -d "./dist" ]; then
+            echo "path=./dist" >> $GITHUB_OUTPUT
+          elif [ -d "./build" ]; then
+            echo "path=./build" >> $GITHUB_OUTPUT
+          else
+            echo "::error::Could not find build output folder! Printing directory tree..."
+            find . -maxdepth 3 -type d
+            exit 1
+          fi
+
       - name: Setup Pages
         uses: actions/configure-pages@v5
 
       - name: Upload artifact
         uses: actions/upload-pages-artifact@v3
         with:
-          # Target the web app build output directory inside the monorepo
-          path: './apps/web/dist'
+          path: ${{ steps.locate-dist.outputs.path }}
 
       - name: Deploy to GitHub Pages
         id: deployment
